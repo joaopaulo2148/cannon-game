@@ -1,0 +1,8 @@
+<resources>
+    <!-- Tema em tela cheia, sem título e sem app bar (Seção 6.4.2) -->
+    <style name="Theme.CannonGame" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="windowNoTitle">true</item>
+        <item name="windowActionBar">false</item>
+        <item name="android:windowFullscreen">true</item>
+    </style>
+</resources>
