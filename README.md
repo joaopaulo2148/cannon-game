@@ -5,8 +5,8 @@ trabalho da disciplina de Programação III (UEMG — Sistemas de Informação).
 
 ## Integrantes
 
-- [João Paulo Borges Pimenta] — [@joaopaulo2148](https://github.com/joaopaulo2148)
-- [João Victor Neves de Souza Mateus Dizaró] — [@joaodizaro](https://github.com/joaodizaro)
+- [Nome do integrante 1] — [@joaopaulo2148](https://github.com/joaopaulo2148)
+- [Nome do integrante 2] — [@joaodizaro](https://github.com/joaodizaro)
 
 ## Objetivo
 
@@ -41,6 +41,8 @@ Recursos extras (sugestões do professor):
 - **Pontuação com sequência e multiplicador** (recurso 1): 100 pontos por alvo × multiplicador (x1 a x5),
   sequência zerada ao errar o tiro ou bater no bloqueador, bônus por tempo restante ao vencer,
   HUD com pontos e sequência atualizado em tempo real e pontuação no diálogo final
+- **Ranking local** (recurso 9): as 5 maiores pontuações ficam salvas no aparelho com `SharedPreferences`
+  (classe `HighScores`); o diálogo de fim de jogo avisa novo recorde, informa a posição e lista o ranking
 
 ## Screenshots
 
@@ -50,16 +52,16 @@ Recursos extras (sugestões do professor):
 ## Como o projeto foi montado no Android Studio (histórico)
 
 1. **New Project > Empty Views Activity**, linguagem **Java**.
-   - Name: `Cannon Game`
-   - Package name: `com.deitel.cannongame`
-   - Minimum SDK: **API 23** (o código usa `getColor(id, theme)` e `SoundPool.Builder`)
+    - Name: `Cannon Game`
+    - Package name: `com.deitel.cannongame`
+    - Minimum SDK: **API 23** (o código usa `getColor(id, theme)` e `SoundPool.Builder`)
 2. Copie os arquivos desta pasta para o projeto, substituindo os gerados:
-   - `java/com/deitel/cannongame/*.java` -> pacote `com.deitel.cannongame`
-   - `res/layout/activity_main.xml` e `res/layout/fragment_main.xml`
-   - `res/values/strings.xml`, `colors.xml` e `themes.xml`
-     (se o projeto tiver `res/values-night/themes.xml`, apague-o ou ajuste o tema também)
-   - `res/raw/*.wav` (crie a pasta: *res > New > Android Resource Directory > raw*)
-   - `AndroidManifest.xml` (mantenha o seu `@mipmap/ic_launcher` / ícone)
+    - `java/com/deitel/cannongame/*.java` -> pacote `com.deitel.cannongame`
+    - `res/layout/activity_main.xml` e `res/layout/fragment_main.xml`
+    - `res/values/strings.xml`, `colors.xml` e `themes.xml`
+      (se o projeto tiver `res/values-night/themes.xml`, apague-o ou ajuste o tema também)
+    - `res/raw/*.wav` (crie a pasta: *res > New > Android Resource Directory > raw*)
+    - `AndroidManifest.xml` (mantenha o seu `@mipmap/ic_launcher` / ícone)
 3. Troque os `.wav` de teste pelos sons do livro (pasta `sounds` dos exemplos):
    `cannon_fire.wav`, `target_hit.wav`, `blocker_hit.wav`.
 4. Sync Gradle e execute em um aparelho (ou AVD) em landscape.
