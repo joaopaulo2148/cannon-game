@@ -4,8 +4,6 @@ package com.deitel.cannongame;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.Dialog;
-import android.app.DialogFragment;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Canvas;
@@ -28,7 +26,7 @@ import java.util.ArrayList;
 import java.util.Random;
 
 public class CannonView extends SurfaceView
-   implements SurfaceHolder.Callback {
+        implements SurfaceHolder.Callback {
 
    private static final String TAG = "CannonView"; // para logs de erro
 
@@ -114,11 +112,11 @@ public class CannonView extends SurfaceView
       // cria o mapa de sons e pré-carrega os sons
       soundMap = new SparseIntArray(3);
       soundMap.put(TARGET_SOUND_ID,
-         soundPool.load(context, R.raw.target_hit, 1));
+              soundPool.load(context, R.raw.target_hit, 1));
       soundMap.put(CANNON_SOUND_ID,
-         soundPool.load(context, R.raw.cannon_fire, 1));
+              soundPool.load(context, R.raw.cannon_fire, 1));
       soundMap.put(BLOCKER_SOUND_ID,
-         soundPool.load(context, R.raw.blocker_hit, 1));
+              soundPool.load(context, R.raw.blocker_hit, 1));
 
       textPaint = new Paint();
       backgroundPaint = new Paint();
@@ -159,9 +157,9 @@ public class CannonView extends SurfaceView
    public void newGame() {
       // constrói um novo Cannon
       cannon = new Cannon(this,
-         (int) (CANNON_BASE_RADIUS_PERCENT * screenHeight),
-         (int) (CANNON_BARREL_LENGTH_PERCENT * screenWidth),
-         (int) (CANNON_BARREL_WIDTH_PERCENT * screenHeight));
+              (int) (CANNON_BASE_RADIUS_PERCENT * screenHeight),
+              (int) (CANNON_BARREL_LENGTH_PERCENT * screenWidth),
+              (int) (CANNON_BARREL_WIDTH_PERCENT * screenHeight));
 
       Random random = new Random(); // para velocidades aleatórias
       targets = new ArrayList<>(); // nova lista de Targets
@@ -171,43 +169,43 @@ public class CannonView extends SurfaceView
 
       // coordenada Y dos Targets (centralizados verticalmente)
       int targetY = (int) ((0.5 - TARGET_LENGTH_PERCENT / 2) *
-         screenHeight);
+              screenHeight);
 
       // adiciona TARGET_PIECES Targets à lista
       for (int n = 0; n < TARGET_PIECES; n++) {
 
          // velocidade aleatória entre os valores mínimo e máximo
          double velocity = screenHeight * (random.nextDouble() *
-            (TARGET_MAX_SPEED_PERCENT - TARGET_MIN_SPEED_PERCENT) +
-            TARGET_MIN_SPEED_PERCENT);
+                 (TARGET_MAX_SPEED_PERCENT - TARGET_MIN_SPEED_PERCENT) +
+                 TARGET_MIN_SPEED_PERCENT);
 
          // alterna as cores dos Targets entre dark e light
          int color = (n % 2 == 0) ?
-            getResources().getColor(R.color.dark,
-               getContext().getTheme()) :
-            getResources().getColor(R.color.light,
-               getContext().getTheme());
+                 getResources().getColor(R.color.dark,
+                         getContext().getTheme()) :
+                 getResources().getColor(R.color.light,
+                         getContext().getTheme());
 
          velocity *= -1; // inverte a velocidade inicial do próximo Target
 
          // cria e adiciona um novo Target à lista
          targets.add(new Target(this, color, HIT_REWARD, targetX, targetY,
-            (int) (TARGET_WIDTH_PERCENT * screenWidth),
-            (int) (TARGET_LENGTH_PERCENT * screenHeight),
-            (int) velocity));
+                 (int) (TARGET_WIDTH_PERCENT * screenWidth),
+                 (int) (TARGET_LENGTH_PERCENT * screenHeight),
+                 (int) velocity));
 
          // desloca a coordenada x para posicionar o próximo Target
          targetX += (TARGET_WIDTH_PERCENT + TARGET_SPACING_PERCENT) *
-            screenWidth;
+                 screenWidth;
       }
 
       // cria um novo Blocker
       blocker = new Blocker(this, Color.BLACK, MISS_PENALTY,
-         (int) (BLOCKER_X_PERCENT * screenWidth),
-         (int) ((0.5 - BLOCKER_LENGTH_PERCENT / 2) * screenHeight),
-         (int) (BLOCKER_WIDTH_PERCENT * screenWidth),
-         (int) (BLOCKER_LENGTH_PERCENT * screenHeight),
-         (float) (BLOCKER_SPEED_PERCENT * screenHeight));
+              (int) (BLOCKER_X_PERCENT * screenWidth),
+              (int) ((0.5 - BLOCKER_LENGTH_PERCENT / 2) * screenHeight),
+              (int) (BLOCKER_WIDTH_PERCENT * screenWidth),
+              (int) (BLOCKER_LENGTH_PERCENT * screenHeight),
+              (float) (BLOCKER_SPEED_PERCENT * screenHeight));
 
       timeLeft = 10; // começa a contagem em 10 segundos
 
@@ -225,6 +223,9 @@ public class CannonView extends SurfaceView
 
    // chamado repetidamente pela CannonThread para atualizar os elementos
    private void updatePositions(double elapsedTimeMS) {
+      if (gameOver) // o jogo já terminou: evita exibir o dialog duas vezes
+         return;
+
       double interval = elapsedTimeMS / 1000.0; // converte para segundos
 
       // atualiza a posição da bola se ela estiver na tela
@@ -244,13 +245,14 @@ public class CannonView extends SurfaceView
          gameOver = true; // o jogo acabou
          cannonThread.setRunning(false); // termina a thread
          showGameOverDialog(R.string.lose); // exibe o dialog de derrota
+         return; // não testa a vitória no mesmo frame
       }
 
       // se todos os alvos foram atingidos
       if (targets.isEmpty()) {
+         gameOver = true;
          cannonThread.setRunning(false); // termina a thread
          showGameOverDialog(R.string.win); // exibe o dialog de vitória
-         gameOver = true;
       }
    }
 
@@ -258,7 +260,7 @@ public class CannonView extends SurfaceView
    public void alignAndFireCannonball(MotionEvent event) {
       // obtém a posição do toque nesta view
       Point touchPoint = new Point((int) event.getX(),
-         (int) event.getY());
+              (int) event.getY());
 
       // calcula a distância do toque ao centro da tela no eixo y
       double centerMinusY = (screenHeight / 2 - touchPoint.y);
@@ -273,7 +275,7 @@ public class CannonView extends SurfaceView
 
       // dispara a Cannonball se não houver outra na tela
       if (cannon.getCannonball() == null ||
-         !cannon.getCannonball().isOnScreen()) {
+              !cannon.getCannonball().isOnScreen()) {
          cannon.fireCannonball();
          ++shotsFired;
       }
@@ -281,46 +283,37 @@ public class CannonView extends SurfaceView
 
    // exibe um AlertDialog quando o jogo termina
    private void showGameOverDialog(final int messageId) {
-      // DialogFragment que exibe as estatísticas e inicia novo jogo
-      final DialogFragment gameResult =
-         new DialogFragment() {
-            // cria um AlertDialog e o retorna
-            @Override
-            public Dialog onCreateDialog(Bundle bundle) {
-               // cria dialog exibindo o String resource de messageId
-               AlertDialog.Builder builder =
-                  new AlertDialog.Builder(getActivity());
-               builder.setTitle(getResources().getString(messageId));
-
-               // exibe tiros disparados e tempo total
-               builder.setMessage(getResources().getString(
-                  R.string.results_format, shotsFired, totalElapsedTime));
-               builder.setPositiveButton(R.string.reset_game,
-                  new DialogInterface.OnClickListener() {
-                     // chamado quando o botão "Reset Game" é pressionado
-                     @Override
-                     public void onClick(DialogInterface dialog,
-                        int which) {
-                        dialogIsDisplayed = false;
-                        newGame(); // configura e inicia novo jogo
-                     }
-                  }
-               );
-
-               return builder.create(); // retorna o AlertDialog
-            }
-         };
-
-      // na thread da GUI, usa o FragmentManager para exibir o DialogFragment
+      // o dialog precisa ser criado e exibido na thread da GUI
       activity.runOnUiThread(
-         new Runnable() {
-            public void run() {
-               showSystemBars(); // sai do modo imersivo
-               dialogIsDisplayed = true;
-               gameResult.setCancelable(false); // dialog modal
-               gameResult.show(activity.getFragmentManager(), "results");
-            }
-         }
+              new Runnable() {
+                 public void run() {
+                    // não exibe o dialog se a Activity já está sendo fechada
+                    if (activity.isFinishing() || activity.isDestroyed())
+                       return;
+
+                    showSystemBars(); // sai do modo imersivo
+                    dialogIsDisplayed = true;
+
+                    AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+                    builder.setTitle(messageId);
+
+                    // exibe tiros disparados e tempo total
+                    builder.setMessage(getResources().getString(
+                            R.string.results_format, shotsFired, totalElapsedTime));
+                    builder.setCancelable(false); // dialog modal
+                    builder.setPositiveButton(R.string.reset_game,
+                            new DialogInterface.OnClickListener() {
+                               // chamado quando o botão "Reset Game" é pressionado
+                               @Override
+                               public void onClick(DialogInterface dialog, int which) {
+                                  dialogIsDisplayed = false;
+                                  newGame(); // configura e inicia novo jogo
+                               }
+                            }
+                    );
+                    builder.show();
+                 }
+              }
       );
    }
 
@@ -328,17 +321,17 @@ public class CannonView extends SurfaceView
    public void drawGameElements(Canvas canvas) {
       // limpa o fundo
       canvas.drawRect(0, 0, canvas.getWidth(), canvas.getHeight(),
-         backgroundPaint);
+              backgroundPaint);
 
       // exibe o tempo restante
       canvas.drawText(getResources().getString(
-         R.string.time_remaining_format, timeLeft), 50, 100, textPaint);
+              R.string.time_remaining_format, timeLeft), 50, 100, textPaint);
 
       cannon.draw(canvas); // desenha o canhão
 
       // desenha os GameElements
       if (cannon.getCannonball() != null &&
-         cannon.getCannonball().isOnScreen())
+              cannon.getCannonball().isOnScreen())
          cannon.getCannonball().draw(canvas);
 
       blocker.draw(canvas); // desenha o blocker
@@ -353,7 +346,7 @@ public class CannonView extends SurfaceView
    public void testForCollisions() {
       // remove os alvos com os quais a Cannonball colide
       if (cannon.getCannonball() != null &&
-         cannon.getCannonball().isOnScreen()) {
+              cannon.getCannonball().isOnScreen()) {
          for (int n = 0; n < targets.size(); n++) {
             if (cannon.getCannonball().collidesWith(targets.get(n))) {
                targets.get(n).playSound(); // toca o som de alvo atingido
@@ -374,7 +367,7 @@ public class CannonView extends SurfaceView
 
       // verifica se a bola colide com o blocker
       if (cannon.getCannonball() != null &&
-         cannon.getCannonball().collidesWith(blocker)) {
+              cannon.getCannonball().collidesWith(blocker)) {
          blocker.playSound(); // toca o som do Blocker
 
          // inverte a direção da bola
@@ -402,7 +395,7 @@ public class CannonView extends SurfaceView
    // chamado quando a superfície muda de tamanho
    @Override
    public void surfaceChanged(SurfaceHolder holder, int format,
-      int width, int height) { }
+                              int width, int height) { }
 
    // chamado quando a superfície é criada pela primeira vez
    @Override
@@ -418,6 +411,9 @@ public class CannonView extends SurfaceView
    // chamado quando a superfície é destruída
    @Override
    public void surfaceDestroyed(SurfaceHolder holder) {
+      if (cannonThread == null) // a thread pode não ter sido criada ainda
+         return;
+
       // garante que a thread termine corretamente
       boolean retry = true;
       cannonThread.setRunning(false); // termina a cannonThread
@@ -441,7 +437,7 @@ public class CannonView extends SurfaceView
 
       // o usuário tocou ou arrastou o dedo pela tela
       if (action == MotionEvent.ACTION_DOWN ||
-         action == MotionEvent.ACTION_MOVE) {
+              action == MotionEvent.ACTION_MOVE) {
          // dispara a bola em direção ao ponto tocado
          alignAndFireCannonball(e);
       }
@@ -502,20 +498,20 @@ public class CannonView extends SurfaceView
    private void hideSystemBars() {
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
          setSystemUiVisibility(
-            View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
-            View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
-            View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
-            View.SYSTEM_UI_FLAG_HIDE_NAVIGATION |
-            View.SYSTEM_UI_FLAG_FULLSCREEN |
-            View.SYSTEM_UI_FLAG_IMMERSIVE);
+                 View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
+                         View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
+                         View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
+                         View.SYSTEM_UI_FLAG_HIDE_NAVIGATION |
+                         View.SYSTEM_UI_FLAG_FULLSCREEN |
+                         View.SYSTEM_UI_FLAG_IMMERSIVE);
    }
 
    // exibe as barras do sistema e a app bar
    private void showSystemBars() {
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
          setSystemUiVisibility(
-            View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
-            View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
-            View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
+                 View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
+                         View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
+                         View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
    }
 }

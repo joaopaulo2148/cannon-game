@@ -13,3 +13,6 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Configurações pessoais da IDE (evita o aviso de VCS root inválido)
+/.idea
