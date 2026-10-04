@@ -7,4 +7,8 @@
     <string name="time_remaining_format">Time remaining: %.1f seconds</string>
     <string name="score_format">Score: %1$d</string>
     <string name="streak_format">Streak: %1$d (x%2$d)</string>
+    <string name="new_record">New high score!</string>
+    <string name="ranking_position">You placed #%1$d in the ranking!</string>
+    <string name="ranking_title">Top scores</string>
+    <string name="ranking_entry">%1$d. %2$d</string>
 </resources>

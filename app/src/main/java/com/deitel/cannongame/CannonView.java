@@ -23,6 +23,7 @@ import android.view.SurfaceView;
 import android.view.View;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 public class CannonView extends SurfaceView
@@ -310,10 +311,32 @@ public class CannonView extends SurfaceView
                     AlertDialog.Builder builder = new AlertDialog.Builder(activity);
                     builder.setTitle(messageId);
 
-                    // exibe tiros disparados e tempo total
-                    builder.setMessage(getResources().getString(
-                            R.string.results_format, shotsFired, totalElapsedTime,
-                            score, bestStreak));
+                    // registra a pontuação no ranking local
+                    int position = HighScores.addScore(activity, score);
+
+                    // exibe pontuação, tiros disparados e tempo total
+                    StringBuilder message = new StringBuilder(
+                            getResources().getString(R.string.results_format,
+                                    shotsFired, totalElapsedTime, score, bestStreak));
+
+                    if (position == 0) // novo recorde
+                       message.append("\n\n").append(
+                               getResources().getString(R.string.new_record));
+                    else if (position > 0) // entrou no ranking
+                       message.append("\n\n").append(getResources().getString(
+                               R.string.ranking_position, position + 1));
+
+                    // lista o ranking local
+                    List<Integer> top = HighScores.getScores(activity);
+                    if (!top.isEmpty()) {
+                       message.append("\n\n").append(
+                               getResources().getString(R.string.ranking_title));
+                       for (int i = 0; i < top.size(); i++)
+                          message.append("\n").append(getResources().getString(
+                                  R.string.ranking_entry, i + 1, top.get(i)));
+                    }
+
+                    builder.setMessage(message.toString());
                     builder.setCancelable(false); // dialog modal
                     builder.setPositiveButton(R.string.reset_game,
                             new DialogInterface.OnClickListener() {
