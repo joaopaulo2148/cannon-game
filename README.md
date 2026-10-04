@@ -5,8 +5,8 @@ trabalho da disciplina de Programação III (UEMG — Sistemas de Informação).
 
 ## Integrantes
 
-- [Nome do integrante 1] — [@joaopaulo2148](https://github.com/joaopaulo2148)
-- [Nome do integrante 2] — [@joaodizaro](https://github.com/joaodizaro)
+- [João Paulo Borges Pimenta] — [@joaopaulo2148](https://github.com/joaopaulo2148)
+- [João Victor Neves de Souza Mateus Dizaró] — [@joaodizaro](https://github.com/joaodizaro)
 
 ## Objetivo
 
