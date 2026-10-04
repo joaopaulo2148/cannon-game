@@ -34,6 +34,11 @@ public class CannonView extends SurfaceView
    public static final int MISS_PENALTY = 2; // segundos descontados ao errar
    public static final int HIT_REWARD = 3; // segundos somados ao acertar
 
+   // constantes da pontuação
+   public static final int BASE_HIT_POINTS = 100; // pontos por alvo atingido
+   public static final int MAX_MULTIPLIER = 5; // multiplicador máximo
+   public static final int TIME_BONUS_PER_SECOND = 10; // bônus por segundo restante ao vencer
+
    // constantes do Cannon
    public static final double CANNON_BASE_RADIUS_PERCENT = 3.0 / 40;
    public static final double CANNON_BARREL_WIDTH_PERCENT = 3.0 / 40;
@@ -79,6 +84,9 @@ public class CannonView extends SurfaceView
    private double timeLeft; // tempo restante em segundos
    private int shotsFired; // tiros disparados
    private double totalElapsedTime; // segundos decorridos
+   private int score; // pontuação total
+   private int streak; // acertos consecutivos
+   private int bestStreak; // maior sequência da partida
 
    // constantes e variáveis para os sons
    public static final int TARGET_SOUND_ID = 0;
@@ -211,6 +219,9 @@ public class CannonView extends SurfaceView
 
       shotsFired = 0; // número inicial de tiros
       totalElapsedTime = 0.0; // tempo decorrido zerado
+      score = 0; // pontuação zerada
+      streak = 0; // sem sequência no início
+      bestStreak = 0;
 
       if (gameOver) { // inicia novo jogo após o término do anterior
          gameOver = false; // o jogo não terminou
@@ -250,6 +261,8 @@ public class CannonView extends SurfaceView
 
       // se todos os alvos foram atingidos
       if (targets.isEmpty()) {
+         // bônus por tempo restante ao vencer
+         score += (int) (Math.max(timeLeft, 0) * TIME_BONUS_PER_SECOND);
          gameOver = true;
          cannonThread.setRunning(false); // termina a thread
          showGameOverDialog(R.string.win); // exibe o dialog de vitória
@@ -299,7 +312,8 @@ public class CannonView extends SurfaceView
 
                     // exibe tiros disparados e tempo total
                     builder.setMessage(getResources().getString(
-                            R.string.results_format, shotsFired, totalElapsedTime));
+                            R.string.results_format, shotsFired, totalElapsedTime,
+                            score, bestStreak));
                     builder.setCancelable(false); // dialog modal
                     builder.setPositiveButton(R.string.reset_game,
                             new DialogInterface.OnClickListener() {
@@ -326,6 +340,14 @@ public class CannonView extends SurfaceView
       // exibe o tempo restante
       canvas.drawText(getResources().getString(
               R.string.time_remaining_format, timeLeft), 50, 100, textPaint);
+
+      // exibe a pontuação, a sequência e o multiplicador atual
+      float lineHeight = textPaint.getTextSize() * 1.2f;
+      canvas.drawText(getResources().getString(
+              R.string.score_format, score), 50, 100 + lineHeight, textPaint);
+      canvas.drawText(getResources().getString(
+                      R.string.streak_format, streak, getMultiplier()),
+              50, 100 + 2 * lineHeight, textPaint);
 
       cannon.draw(canvas); // desenha o canhão
 
@@ -354,6 +376,12 @@ public class CannonView extends SurfaceView
                // soma a recompensa ao tempo restante
                timeLeft += targets.get(n).getHitReward();
 
+               // acerto: aumenta a sequência e soma pontos com multiplicador
+               ++streak;
+               if (streak > bestStreak)
+                  bestStreak = streak;
+               score += BASE_HIT_POINTS * getMultiplier();
+
                cannon.removeCannonball(); // remove a bola do jogo
                targets.remove(n); // remove o alvo atingido
                --n; // garante que o novo alvo n seja testado
@@ -362,6 +390,8 @@ public class CannonView extends SurfaceView
          }
       }
       else { // remove a Cannonball se ela não deve estar na tela
+         if (cannon.getCannonball() != null)
+            streak = 0; // a bola saiu da tela sem acertar: perde a sequência
          cannon.removeCannonball();
       }
 
@@ -375,7 +405,14 @@ public class CannonView extends SurfaceView
 
          // desconta a penalidade do blocker do tempo restante
          timeLeft -= blocker.getMissPenalty();
+
+         streak = 0; // bater no blocker zera a sequência
       }
+   }
+
+   // multiplicador atual: x1 sem sequência, +1 a cada acerto seguido
+   private int getMultiplier() {
+      return Math.max(1, Math.min(streak, MAX_MULTIPLIER));
    }
 
    // para o jogo: chamado pelo onPause do MainActivityFragment
