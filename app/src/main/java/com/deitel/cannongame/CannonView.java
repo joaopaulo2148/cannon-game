@@ -23,6 +23,7 @@ import android.view.SurfaceView;
 import android.view.View;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 
@@ -64,6 +65,12 @@ public class CannonView extends SurfaceView
    public static final double BLOCKER_X_PERCENT = 1.0 / 2;
    public static final double BLOCKER_SPEED_PERCENT = 1.0;
 
+   // constantes das partículas da explosão
+   public static final int PARTICLES_PER_HIT = 24; // partículas por alvo atingido
+   public static final double PARTICLE_LIFETIME = 0.7; // duração em segundos
+   public static final double PARTICLE_MIN_SPEED_PERCENT = 0.3; // da altura da tela por segundo
+   public static final double PARTICLE_MAX_SPEED_PERCENT = 1.0;
+
    // tamanho do texto: 1/18 da altura da tela
    public static final double TEXT_SIZE_PERCENT = 1.0 / 18;
 
@@ -75,6 +82,8 @@ public class CannonView extends SurfaceView
    private Cannon cannon;
    private Blocker blocker;
    private ArrayList<Target> targets;
+   private ArrayList<Particle> particles = new ArrayList<>(); // explosões
+   private Paint particlePaint; // desenha as partículas
 
    // dimensões
    private int screenWidth;
@@ -129,6 +138,8 @@ public class CannonView extends SurfaceView
 
       textPaint = new Paint();
       backgroundPaint = new Paint();
+      particlePaint = new Paint();
+      particlePaint.setAntiAlias(true);
       backgroundPaint.setColor(Color.WHITE);
    }
 
@@ -172,6 +183,7 @@ public class CannonView extends SurfaceView
 
       Random random = new Random(); // para velocidades aleatórias
       targets = new ArrayList<>(); // nova lista de Targets
+      particles = new ArrayList<>(); // sem partículas no início
 
       // posição x do primeiro Target a partir da esquerda
       int targetX = (int) (TARGET_FIRST_X_PERCENT * screenWidth);
@@ -248,6 +260,15 @@ public class CannonView extends SurfaceView
 
       for (GameElement target : targets)
          target.update(interval); // atualiza a posição dos alvos
+
+      // atualiza as partículas e remove as que já acabaram
+      Iterator<Particle> it = particles.iterator();
+      while (it.hasNext()) {
+         Particle particle = it.next();
+         particle.update(interval);
+         if (particle.isDead())
+            it.remove();
+      }
 
       timeLeft -= interval; // subtrai do tempo restante
 
@@ -384,6 +405,10 @@ public class CannonView extends SurfaceView
       // desenha todos os Targets
       for (GameElement target : targets)
          target.draw(canvas);
+
+      // desenha as partículas das explosões
+      for (Particle particle : particles)
+         particle.draw(canvas, particlePaint);
    }
 
    // verifica se a bola colide com o Blocker ou com algum Target
@@ -395,6 +420,11 @@ public class CannonView extends SurfaceView
          for (int n = 0; n < targets.size(); n++) {
             if (cannon.getCannonball().collidesWith(targets.get(n))) {
                targets.get(n).playSound(); // toca o som de alvo atingido
+
+               // cria a explosão de partículas no centro do alvo atingido
+               spawnExplosion(targets.get(n).shape.exactCenterX(),
+                       targets.get(n).shape.exactCenterY(),
+                       targets.get(n).paint.getColor());
 
                // soma a recompensa ao tempo restante
                timeLeft += targets.get(n).getHitReward();
@@ -430,6 +460,25 @@ public class CannonView extends SurfaceView
          timeLeft -= blocker.getMissPenalty();
 
          streak = 0; // bater no blocker zera a sequência
+      }
+   }
+
+   // cria partículas que se espalham em todas as direções (movimento radial)
+   private void spawnExplosion(float x, float y, int targetColor) {
+      Random random = new Random();
+      int[] colors = {targetColor, Color.RED, Color.rgb(255, 165, 0),
+              Color.YELLOW};
+
+      for (int i = 0; i < PARTICLES_PER_HIT; i++) {
+         double angle = random.nextDouble() * 2 * Math.PI; // direção aleatória
+         float speed = (float) (screenHeight * (PARTICLE_MIN_SPEED_PERCENT +
+                 random.nextDouble() * (PARTICLE_MAX_SPEED_PERCENT -
+                         PARTICLE_MIN_SPEED_PERCENT)));
+         float radius = screenHeight / 150f + random.nextFloat() *
+                 screenHeight / 150f;
+
+         particles.add(new Particle(x, y, angle, speed, radius,
+                 colors[random.nextInt(colors.length)], PARTICLE_LIFETIME));
       }
    }
 
