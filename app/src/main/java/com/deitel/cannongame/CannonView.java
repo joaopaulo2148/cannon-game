@@ -9,6 +9,7 @@ import android.content.DialogInterface;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.RectF;
 import android.graphics.Point;
 import android.media.AudioAttributes;
 import android.media.SoundPool;
@@ -35,6 +36,13 @@ public class CannonView extends SurfaceView
    // constantes do jogo
    public static final int MISS_PENALTY = 2; // segundos descontados ao errar
    public static final int HIT_REWARD = 3; // segundos somados ao acertar
+
+   // cores do modo noturno (o modo dia usa as cores originais do jogo)
+   private static final int NIGHT_BACKGROUND = Color.rgb(12, 18, 40);
+   private static final int NIGHT_FOREGROUND = Color.rgb(225, 228, 240);
+   private static final int NIGHT_TARGET_DARK = Color.rgb(79, 195, 247);
+   private static final int NIGHT_TARGET_LIGHT = Color.rgb(255, 241, 118);
+   public static final int STAR_COUNT = 45; // estrelas do cenário noturno
 
    // constantes do movimento complexo dos alvos
    public static final double TARGET_AMPLITUDE_PERCENT = 0.02; // da largura da tela
@@ -98,6 +106,16 @@ public class CannonView extends SurfaceView
    private ArrayList<Particle> particles = new ArrayList<>(); // explosões
    private Paint particlePaint; // desenha as partículas
 
+   // modo dia/noite
+   private volatile boolean nightMode = false; // false = dia, true = noite
+   private RectF themeButton = new RectF(); // botão que alterna o tema
+   private boolean touchOnButton = false; // o toque atual começou no botão?
+   private Paint buttonPaint; // fundo do botão
+   private Paint buttonTextPaint; // texto do botão
+   private Paint starPaint; // estrelas do cenário noturno
+   private float[] starX = new float[STAR_COUNT];
+   private float[] starY = new float[STAR_COUNT];
+
    // dimensões
    private int screenWidth;
    private int screenHeight;
@@ -156,6 +174,15 @@ public class CannonView extends SurfaceView
       particlePaint = new Paint();
       particlePaint.setAntiAlias(true);
       backgroundPaint.setColor(Color.WHITE);
+
+      buttonPaint = new Paint();
+      buttonPaint.setAntiAlias(true);
+      buttonTextPaint = new Paint();
+      buttonTextPaint.setAntiAlias(true);
+      buttonTextPaint.setTextAlign(Paint.Align.CENTER);
+      starPaint = new Paint();
+      starPaint.setAntiAlias(true);
+      starPaint.setColor(Color.WHITE);
    }
 
    // chamado quando o tamanho da SurfaceView muda,
@@ -170,6 +197,21 @@ public class CannonView extends SurfaceView
       // configura as propriedades do texto
       textPaint.setTextSize((int) (TEXT_SIZE_PERCENT * screenHeight));
       textPaint.setAntiAlias(true); // suaviza o texto
+
+      // posiciona o botão do tema no canto inferior esquerdo
+      float margin = screenHeight / 30f;
+      float buttonWidth = screenWidth / 6f;
+      float buttonHeight = screenHeight / 9f;
+      themeButton.set(margin, screenHeight - margin - buttonHeight,
+              margin + buttonWidth, screenHeight - margin);
+      buttonTextPaint.setTextSize(textPaint.getTextSize() * 0.6f);
+
+      // sorteia a posição das estrelas do modo noturno
+      Random random = new Random();
+      for (int i = 0; i < STAR_COUNT; i++) {
+         starX[i] = random.nextFloat() * screenWidth;
+         starY[i] = random.nextFloat() * screenHeight;
+      }
    }
 
    // largura da tela do jogo
@@ -233,6 +275,7 @@ public class CannonView extends SurfaceView
          // define o tipo de movimento do alvo (linear, senoidal, etc.)
          target.setMovement(MOVEMENT_PATTERN[n % MOVEMENT_PATTERN.length],
                  (float) (TARGET_AMPLITUDE_PERCENT * screenWidth), n * 0.8);
+         target.setLight(n % 2 != 0); // guarda a cor para trocar o tema
          targets.add(target);
 
          // desloca a coordenada x para posicionar o próximo Target
@@ -247,6 +290,8 @@ public class CannonView extends SurfaceView
               (int) (BLOCKER_WIDTH_PERCENT * screenWidth),
               (int) (BLOCKER_LENGTH_PERCENT * screenHeight),
               (float) (BLOCKER_SPEED_PERCENT * screenHeight));
+
+      applyTheme(); // mantém o tema escolhido ao reiniciar o jogo
 
       timeLeft = 10; // começa a contagem em 10 segundos
 
@@ -403,6 +448,9 @@ public class CannonView extends SurfaceView
       canvas.drawRect(0, 0, canvas.getWidth(), canvas.getHeight(),
               backgroundPaint);
 
+      if (nightMode)
+         drawStars(canvas); // estrelas piscando no cenário noturno
+
       // exibe o tempo restante
       canvas.drawText(getResources().getString(
               R.string.time_remaining_format, timeLeft), 50, 100, textPaint);
@@ -434,6 +482,8 @@ public class CannonView extends SurfaceView
       // desenha as partículas das explosões
       for (Particle particle : particles)
          particle.draw(canvas, particlePaint);
+
+      drawThemeButton(canvas); // botão de alternar dia/noite
    }
 
    // verifica se a bola colide com o Blocker ou com algum Target
@@ -510,6 +560,60 @@ public class CannonView extends SurfaceView
          particles.add(new Particle(x, y, angle, speed, radius,
                  colors[random.nextInt(colors.length)], PARTICLE_LIFETIME));
       }
+   }
+
+   // alterna entre o modo dia e o modo noturno
+   private void toggleTheme() {
+      nightMode = !nightMode;
+      applyTheme();
+   }
+
+   // aplica as cores do tema atual a todos os elementos do jogo
+   private void applyTheme() {
+      backgroundPaint.setColor(nightMode ? NIGHT_BACKGROUND : Color.WHITE);
+      textPaint.setColor(nightMode ? NIGHT_FOREGROUND : Color.BLACK);
+      int foreground = nightMode ? NIGHT_FOREGROUND : Color.BLACK;
+
+      if (cannon != null)
+         cannon.setColor(foreground);
+      if (blocker != null)
+         blocker.paint.setColor(foreground);
+
+      if (targets != null) {
+         for (Target target : targets) {
+            int color;
+            if (nightMode)
+               color = target.isLight() ? NIGHT_TARGET_LIGHT : NIGHT_TARGET_DARK;
+            else
+               color = getResources().getColor(target.isLight() ?
+                       R.color.light : R.color.dark, getContext().getTheme());
+            target.paint.setColor(color);
+         }
+      }
+   }
+
+   // desenha as estrelas do cenário noturno, piscando suavemente
+   private void drawStars(Canvas canvas) {
+      for (int i = 0; i < STAR_COUNT; i++) {
+         double twinkle = Math.sin(totalElapsedTime * 2.5 + i);
+         starPaint.setAlpha((int) (150 + 100 * twinkle));
+         canvas.drawCircle(starX[i], starY[i],
+                 screenHeight / 300f * (1 + i % 3), starPaint);
+      }
+   }
+
+   // desenha o botão que alterna entre modo dia e noturno
+   private void drawThemeButton(Canvas canvas) {
+      buttonPaint.setColor(nightMode ? NIGHT_FOREGROUND : Color.rgb(40, 40, 50));
+      buttonTextPaint.setColor(nightMode ? NIGHT_BACKGROUND : Color.WHITE);
+      float radius = themeButton.height() / 4;
+      canvas.drawRoundRect(themeButton, radius, radius, buttonPaint);
+
+      String label = getResources().getString(
+              nightMode ? R.string.day_mode : R.string.night_mode);
+      float textY = themeButton.centerY() -
+              (buttonTextPaint.descent() + buttonTextPaint.ascent()) / 2;
+      canvas.drawText(label, themeButton.centerX(), textY, buttonTextPaint);
    }
 
    // sobe de nível: alvos restantes mais rápidos, menores, com a direção
@@ -589,6 +693,20 @@ public class CannonView extends SurfaceView
    public boolean onTouchEvent(MotionEvent e) {
       // obtém o int que representa o tipo de ação do evento
       int action = e.getAction();
+
+      // toque no botão de tema: alterna dia/noite e não dispara o canhão
+      if (action == MotionEvent.ACTION_DOWN &&
+              themeButton.contains(e.getX(), e.getY())) {
+         touchOnButton = true;
+         toggleTheme();
+         return true;
+      }
+      if (touchOnButton) { // ignora o restante do toque que começou no botão
+         if (action == MotionEvent.ACTION_UP ||
+                 action == MotionEvent.ACTION_CANCEL)
+            touchOnButton = false;
+         return true;
+      }
 
       // o usuário tocou ou arrastou o dedo pela tela
       if (action == MotionEvent.ACTION_DOWN ||

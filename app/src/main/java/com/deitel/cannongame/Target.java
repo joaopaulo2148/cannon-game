@@ -17,6 +17,7 @@ public class Target extends GameElement {
    private static final double MAX_SPEED_FACTOR = 2.0; // limite em relação à velocidade base
 
    private int hitReward; // recompensa de tempo ao acertar este alvo
+   private boolean light; // true: alvo da cor clara; false: da cor escura
    private Movement movement = Movement.LINEAR;
    private float amplitude; // amplitude da oscilação horizontal em pixels
    private double phase; // defasagem para os alvos não se moverem em sincronia
@@ -80,6 +81,15 @@ public class Target extends GameElement {
    public void scaleSpeed(float factor) {
       super.scaleSpeed(factor);
       baseSpeed *= factor;
+   }
+
+   // define se o alvo usa a cor clara ou a escura (para trocar o tema)
+   public void setLight(boolean light) {
+      this.light = light;
+   }
+
+   public boolean isLight() {
+      return light;
    }
 
    // altera a recompensa de tempo (reduzida conforme o nível sobe)

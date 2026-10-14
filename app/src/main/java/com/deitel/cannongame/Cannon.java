@@ -15,16 +15,23 @@ public class Cannon {
    private Cannonball cannonball; // a bola de canhão disparada
    private Paint paint = new Paint(); // Paint usado para desenhar o canhão
    private CannonView view; // view que contém o Cannon
+   private int color = Color.BLACK; // cor do canhão e das Cannonballs
 
    // construtor
    public Cannon(CannonView view, int baseRadius, int barrelLength,
-      int barrelWidth) {
+                 int barrelWidth) {
       this.view = view;
       this.baseRadius = baseRadius;
       this.barrelLength = barrelLength;
       paint.setStrokeWidth(barrelWidth); // define a largura do cano
-      paint.setColor(Color.BLACK); // o canhão é preto
+      paint.setColor(color); // o canhão começa preto (modo dia)
       align(Math.PI / 2); // cano inicialmente apontando para a direita
+   }
+
+   // muda a cor do canhão e das próximas Cannonballs (modo dia/noite)
+   public void setColor(int color) {
+      this.color = color;
+      paint.setColor(color);
    }
 
    // alinha o cano do canhão ao ângulo dado
@@ -32,28 +39,28 @@ public class Cannon {
       this.barrelAngle = barrelAngle;
       barrelEnd.x = (int) (barrelLength * Math.sin(barrelAngle));
       barrelEnd.y = (int) (-barrelLength * Math.cos(barrelAngle)) +
-         view.getScreenHeight() / 2;
+              view.getScreenHeight() / 2;
    }
 
    // cria e dispara a Cannonball na direção para onde o Cannon aponta
    public void fireCannonball() {
       // calcula a componente x da velocidade
       int velocityX = (int) (CannonView.CANNONBALL_SPEED_PERCENT *
-         view.getScreenWidth() * Math.sin(barrelAngle));
+              view.getScreenWidth() * Math.sin(barrelAngle));
 
       // calcula a componente y da velocidade
       int velocityY = (int) (CannonView.CANNONBALL_SPEED_PERCENT *
-         view.getScreenWidth() * -Math.cos(barrelAngle));
+              view.getScreenWidth() * -Math.cos(barrelAngle));
 
       // calcula o raio da Cannonball
       int radius = (int) (view.getScreenHeight() *
-         CannonView.CANNONBALL_RADIUS_PERCENT);
+              CannonView.CANNONBALL_RADIUS_PERCENT);
 
       // constrói a Cannonball e a posiciona dentro do Cannon
-      cannonball = new Cannonball(view, Color.BLACK,
-         CannonView.CANNON_SOUND_ID, -radius,
-         view.getScreenHeight() / 2 - radius, radius, velocityX,
-         velocityY);
+      cannonball = new Cannonball(view, color,
+              CannonView.CANNON_SOUND_ID, -radius,
+              view.getScreenHeight() / 2 - radius, radius, velocityX,
+              velocityY);
 
       cannonball.playSound(); // toca o som de disparo
    }
@@ -62,11 +69,11 @@ public class Cannon {
    public void draw(Canvas canvas) {
       // desenha o cano
       canvas.drawLine(0, view.getScreenHeight() / 2, barrelEnd.x,
-         barrelEnd.y, paint);
+              barrelEnd.y, paint);
 
       // desenha a base
       canvas.drawCircle(0, (int) view.getScreenHeight() / 2,
-         (int) baseRadius, paint);
+              (int) baseRadius, paint);
    }
 
    // retorna a Cannonball disparada por este Cannon
