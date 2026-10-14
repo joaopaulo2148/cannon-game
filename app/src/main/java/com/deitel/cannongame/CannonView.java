@@ -36,6 +36,12 @@ public class CannonView extends SurfaceView
    public static final int MISS_PENALTY = 2; // segundos descontados ao errar
    public static final int HIT_REWARD = 3; // segundos somados ao acertar
 
+   // constantes da dificuldade progressiva
+   public static final int HITS_PER_LEVEL = 4; // acertos para subir de nível
+   public static final float LEVEL_SPEED_FACTOR = 1.1f; // alvos mais rápidos
+   public static final float LEVEL_SIZE_FACTOR = 0.92f; // alvos menores
+   public static final double MIN_TARGET_LENGTH_PERCENT = 0.5; // limite do encolhimento
+
    // constantes da pontuação
    public static final int BASE_HIT_POINTS = 100; // pontos por alvo atingido
    public static final int MAX_MULTIPLIER = 5; // multiplicador máximo
@@ -97,6 +103,8 @@ public class CannonView extends SurfaceView
    private int score; // pontuação total
    private int streak; // acertos consecutivos
    private int bestStreak; // maior sequência da partida
+   private int targetsHit; // alvos atingidos na partida
+   private int level; // nível de dificuldade atual (começa em 0)
 
    // constantes e variáveis para os sons
    public static final int TARGET_SOUND_ID = 0;
@@ -235,6 +243,8 @@ public class CannonView extends SurfaceView
       score = 0; // pontuação zerada
       streak = 0; // sem sequência no início
       bestStreak = 0;
+      targetsHit = 0; // nenhum alvo atingido ainda
+      level = 0; // começa no nível inicial
 
       if (gameOver) { // inicia novo jogo após o término do anterior
          gameOver = false; // o jogo não terminou
@@ -392,6 +402,9 @@ public class CannonView extends SurfaceView
       canvas.drawText(getResources().getString(
                       R.string.streak_format, streak, getMultiplier()),
               50, 100 + 2 * lineHeight, textPaint);
+      canvas.drawText(getResources().getString(
+                      R.string.level_format, level + 1),
+              50, 100 + 3 * lineHeight, textPaint);
 
       cannon.draw(canvas); // desenha o canhão
 
@@ -438,6 +451,11 @@ public class CannonView extends SurfaceView
                cannon.removeCannonball(); // remove a bola do jogo
                targets.remove(n); // remove o alvo atingido
                --n; // garante que o novo alvo n seja testado
+
+               // a cada HITS_PER_LEVEL acertos, a dificuldade aumenta
+               ++targetsHit;
+               if (targetsHit % HITS_PER_LEVEL == 0)
+                  levelUp();
                break;
             }
          }
@@ -479,6 +497,22 @@ public class CannonView extends SurfaceView
 
          particles.add(new Particle(x, y, angle, speed, radius,
                  colors[random.nextInt(colors.length)], PARTICLE_LIFETIME));
+      }
+   }
+
+   // sobe de nível: alvos restantes mais rápidos, menores, com a direção
+   // invertida e com menos tempo de recompensa
+   private void levelUp() {
+      ++level;
+      int minLength = (int) (MIN_TARGET_LENGTH_PERCENT *
+              TARGET_LENGTH_PERCENT * screenHeight);
+      int reward = Math.max(1, HIT_REWARD - level / 2);
+
+      for (GameElement element : targets) {
+         element.scaleSpeed(LEVEL_SPEED_FACTOR);
+         element.scaleLength(LEVEL_SIZE_FACTOR, minLength);
+         element.reverseDirection(); // direção alterna a cada nível
+         ((Target) element).setHitReward(reward);
       }
    }
 

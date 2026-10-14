@@ -7,9 +7,14 @@ public class Target extends GameElement {
 
    // construtor
    public Target(CannonView view, int color, int hitReward, int x, int y,
-      int width, int length, float velocityY) {
+                 int width, int length, float velocityY) {
       super(view, color, CannonView.TARGET_SOUND_ID, x, y, width, length,
-         velocityY);
+              velocityY);
+      this.hitReward = hitReward;
+   }
+
+   // altera a recompensa de tempo (reduzida conforme o nível sobe)
+   public void setHitReward(int hitReward) {
       this.hitReward = hitReward;
    }
 

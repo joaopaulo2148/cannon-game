@@ -15,7 +15,7 @@ public class GameElement {
 
    // construtor público
    public GameElement(CannonView view, int color, int soundId, int x,
-      int y, int width, int length, float velocityY) {
+                      int y, int width, int length, float velocityY) {
       this.view = view;
       paint.setColor(color);
       shape = new Rect(x, y, x + width, y + length); // define os limites
@@ -30,8 +30,26 @@ public class GameElement {
 
       // se colidir com o topo/fundo, inverte a direção
       if (shape.top < 0 && velocityY < 0 ||
-         shape.bottom > view.getScreenHeight() && velocityY > 0)
+              shape.bottom > view.getScreenHeight() && velocityY > 0)
          velocityY *= -1; // inverte a velocidade vertical
+   }
+
+   // multiplica a velocidade vertical (usado para aumentar a dificuldade)
+   public void scaleSpeed(float factor) {
+      velocityY *= factor;
+   }
+
+   // inverte a direção do movimento vertical
+   public void reverseDirection() {
+      velocityY *= -1;
+   }
+
+   // reduz a altura mantendo o centro, sem passar de minLength
+   public void scaleLength(float factor, int minLength) {
+      int newLength = Math.max(minLength, (int) (shape.height() * factor));
+      int centerY = shape.centerY();
+      shape.top = centerY - newLength / 2;
+      shape.bottom = shape.top + newLength;
    }
 
    // desenha este GameElement no Canvas

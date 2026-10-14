@@ -11,4 +11,5 @@
     <string name="ranking_position">You placed #%1$d in the ranking!</string>
     <string name="ranking_title">Top scores</string>
     <string name="ranking_entry">%1$d. %2$d</string>
+    <string name="level_format">Level: %1$d</string>
 </resources>
