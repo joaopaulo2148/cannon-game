@@ -36,6 +36,13 @@ public class CannonView extends SurfaceView
    public static final int MISS_PENALTY = 2; // segundos descontados ao errar
    public static final int HIT_REWARD = 3; // segundos somados ao acertar
 
+   // constantes do movimento complexo dos alvos
+   public static final double TARGET_AMPLITUDE_PERCENT = 0.02; // da largura da tela
+   private static final Target.Movement[] MOVEMENT_PATTERN = {
+           Target.Movement.LINEAR, Target.Movement.SINE, Target.Movement.ZIGZAG,
+           Target.Movement.LINEAR, Target.Movement.ACCELERATING
+   }; // repetido ao longo dos alvos
+
    // constantes da dificuldade progressiva
    public static final int HITS_PER_LEVEL = 4; // acertos para subir de nível
    public static final float LEVEL_SPEED_FACTOR = 1.1f; // alvos mais rápidos
@@ -218,10 +225,15 @@ public class CannonView extends SurfaceView
          velocity *= -1; // inverte a velocidade inicial do próximo Target
 
          // cria e adiciona um novo Target à lista
-         targets.add(new Target(this, color, HIT_REWARD, targetX, targetY,
-                 (int) (TARGET_WIDTH_PERCENT * screenWidth),
+         Target target = new Target(this, color, HIT_REWARD, targetX,
+                 targetY, (int) (TARGET_WIDTH_PERCENT * screenWidth),
                  (int) (TARGET_LENGTH_PERCENT * screenHeight),
-                 (int) velocity));
+                 (int) velocity);
+
+         // define o tipo de movimento do alvo (linear, senoidal, etc.)
+         target.setMovement(MOVEMENT_PATTERN[n % MOVEMENT_PATTERN.length],
+                 (float) (TARGET_AMPLITUDE_PERCENT * screenWidth), n * 0.8);
+         targets.add(target);
 
          // desloca a coordenada x para posicionar o próximo Target
          targetX += (TARGET_WIDTH_PERCENT + TARGET_SPACING_PERCENT) *

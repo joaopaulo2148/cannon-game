@@ -34,6 +34,15 @@ public class GameElement {
          velocityY *= -1; // inverte a velocidade vertical
    }
 
+   // acesso à velocidade vertical para as subclasses (movimento complexo)
+   protected float getVelocityY() {
+      return velocityY;
+   }
+
+   protected void setVelocityY(float velocityY) {
+      this.velocityY = velocityY;
+   }
+
    // multiplica a velocidade vertical (usado para aumentar a dificuldade)
    public void scaleSpeed(float factor) {
       velocityY *= factor;
