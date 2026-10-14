@@ -43,12 +43,14 @@ Recursos extras (sugestões do professor):
   HUD com pontos e sequência atualizado em tempo real e pontuação no diálogo final
 - **Ranking local** (recurso 9): as 5 maiores pontuações ficam salvas no aparelho com `SharedPreferences`
   (classe `HighScores`); o diálogo de fim de jogo avisa novo recorde, informa a posição e lista o ranking
-- - **Partículas ao acertar o alvo** (recurso 8): explosão de 24 pequenos círculos coloridos com movimento radial
+- **Partículas ao acertar o alvo** (recurso 8): explosão de 24 pequenos círculos coloridos com movimento radial
     e *fade out* (classe `Particle`), atualizados e desenhados quadro a quadro no game loop
 - **Dificuldade progressiva** (recurso 2): a cada 4 alvos atingidos o nível sobe; os alvos restantes ficam
   10% mais rápidos, 8% menores, invertem a direção e rendem menos tempo de recompensa; nível exibido no HUD
 - **Alvos com movimentação complexa** (recurso 10): movimento senoidal, zigue-zague e aceleração progressiva
   combinados ao movimento vertical (classe `Target`, enum `Movement`)
+- **Modo noturno / modo dia** (recurso 6): botão na tela alterna o tema; no modo noturno mudam as cores do cenário,
+    canhão, bola, bloqueador e alvos, e o fundo ganha estrelas piscando
 
 ## Screenshots
 
